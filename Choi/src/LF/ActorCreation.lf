@@ -7,9 +7,18 @@
  
 
  target TypeScript {
+     fast: true
 };
 
+reactor ActorReactor(totalActor:number(10000)) {
 
-main reactor ActorCreation {
+}
 
+reactor ActorCreator(totalMessages:number(10000), numConsumer:number(60)) {
+    
+}
+
+main reactor ActorCreation(numActorPerReactor:number(10000), numWorkers:number(60)) {
+    producer = new ActorCreator(totalMessages=numActorPerReactor, numConsumer=numWorkers);
+    worker = new[numWorkers] ActorReactor(totalActor =numActorPerReactor);
 }
