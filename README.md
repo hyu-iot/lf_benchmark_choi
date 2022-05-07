@@ -8,7 +8,7 @@ Author : @Wonseo-C, @Dukichoi
 
 ---
 
-Benchmark with Mutation List
+## Benchmark with Mutation List
 1. ActorCreation
 2. FacilityLocation
 3. Philosophers
@@ -16,3 +16,10 @@ Benchmark with Mutation List
 5. Sieve
 6. SuccessiveOverRelaxation
 7. UnbalancedCobwebbedTree
+
+---
+
+## Generate Code
+'''
+./gradlew runLfc --args $WORKSPACE_DIR/lf_benchmark_choi/Choi/src/LF/Philosophers.lf
+'''
