@@ -53,8 +53,8 @@ reactor Child(limit:number(10000)){
 main reactor Quicksort(limit:number(10000)){
     state startTime:time;
 
-    parent = new Parent(limit);
-    child = new Child(limit);
+    parent = new Parent(limit=limit);
+    child = new Child(limit=limit);
 
     // start
     reaction (startup) -> parent.start {=
