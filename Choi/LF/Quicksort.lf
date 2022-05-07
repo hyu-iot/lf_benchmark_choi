@@ -64,7 +64,7 @@ main reactor Quicksort(limit:number(10000)){
 
     // end
     reaction (parent.done) {=
-        let elapsedTime = util.getCurrentPhysicalTime().subtract(startTime as TimeValue);
+        const elapsedTime = util.getCurrentPhysicalTime().subtract(startTime as TimeValue);
         console.log("Elapsed time: " + elapsedTime);
         util.requestStop();
     =}
