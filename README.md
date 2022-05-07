@@ -20,6 +20,5 @@ Author : @Wonseo-C, @Dukichoi
 ---
 
 ## Generate Code
-'''
-./gradlew runLfc --args $WORKSPACE_DIR/lf_benchmark_choi/Choi/src/LF/Philosophers.lf
-'''
+
+    ./gradlew runLfc --args $WORKSPACE_DIR/lf_benchmark_choi/Choi/src/LF/Philosophers.lf
