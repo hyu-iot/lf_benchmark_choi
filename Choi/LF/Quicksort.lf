@@ -1,0 +1,75 @@
+/*
+ * Copyright (C) 2022 TU Dresden and UC Berkeley
+ * 
+ * @author Wonseo Choi
+ * @author DukiChoi
+ */
+ 
+
+ target TypeScript {
+    fast: true
+};
+
+
+reactor Parent(limit:number(10000)){
+    input start: boolean;
+    output delegate: boolean;
+    input merge: boolean;
+    output done : boolean;
+    state count:number(0);
+    
+    //delegate는 child에게 넘겨서 계산하게끔 하는 함수
+    reaction (start) -> delegate{=
+        if(count == limit){
+            done == true;
+        }else{
+            delegate == true;
+        }
+    =}
+
+    //child에게 받은 것을 전체 array에 병합
+    reaction (merge){=
+
+    =}
+    
+}
+
+reactor Child(limit:number(10000)){
+    output report:boolean;
+    input delegate:boolean;
+    input sort:boolean;
+    
+    //부모에게 받은 것을 sort
+    reaction (sort){=
+        //퀵소트 알고리즘
+    =}
+
+    //완성한 것을 부모에게 전달
+    reaction (sort)->report{=
+
+    =}
+}
+
+main reactor Quicksort(limit:number(10000)){
+    state startTime:time;
+
+    parent = new Parent(limit);
+    child = new Child(limit);
+
+    // start
+    reaction (startup) -> parent.start {=
+        parent.start = true;
+        startTime = util.getCurrentPhysicalTime();
+    =}
+
+    // end
+    reaction (parent.done) {=
+        let elapsedTime = util.getCurrentPhysicalTime().subtract(startTime as TimeValue);
+        console.log("Elapsed time: " + elapsedTime);
+        util.requestStop();
+    =}
+
+    // Do the quicksort
+    parent.delegate -> child.sort;
+    child.report -> parent.merge;
+}
