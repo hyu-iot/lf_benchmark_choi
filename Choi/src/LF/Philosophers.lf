@@ -24,13 +24,13 @@ reactor Philosopher(count:number(10000)) {
     state numEaten: number(0);
     
     reaction (start) -> hungry {=
-        console.log("Hello! I am Philosopher " + this.getBankIndex() + " and I am hungry!")
+        // console.log("Hello! I am Philosopher " + this.getBankIndex() + " and I am hungry!")
         numEaten = 0;
         hungry = true;
     =}
     
     reaction (eat) -> done, finished, hungry {=
-        console.log("Philosopher " + this.getBankIndex() + " is eating.")
+        // console.log("Philosopher " + this.getBankIndex() + " is eating.")
         ++numEaten;
         done = true;
 
@@ -42,7 +42,7 @@ reactor Philosopher(count:number(10000)) {
     =}
     
     reaction (denied) -> hungry {=
-        console.log("Philosopher " + this.getBankIndex() + " was denied and is thinking.")
+        // console.log("Philosopher " + this.getBankIndex() + " was denied and is thinking.")
         hungry = true;
     =}
 }
@@ -149,6 +149,10 @@ main reactor Philosophers (numIterations:number(12), num_philosophers:number(20)
     arbitrator = new Arbitrator(num_philosophers = num_philosophers);
     philosophers = new[num_philosophers] Philosopher(count=count);
     runner = new BenchmarkRunner(num_iterations = numIterations);
+
+    reaction (startup) {=
+        console.log("Start Philosophers LF Benchmark!");
+    =}
 
     (runner.start)+ -> arbitrator.start, philosophers.start;
     arbitrator.allFinished -> runner.finish;
