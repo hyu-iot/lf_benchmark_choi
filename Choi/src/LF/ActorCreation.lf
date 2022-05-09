@@ -10,6 +10,8 @@
      fast: true
 };
 
+import BenchmarkRunner from "BenchmarkRunner.lf";
+
 reactor ActorReactor(totalActor:number(10000)) {
     
     input inMessage:boolean;
@@ -32,7 +34,7 @@ reactor ActorCreator(totalActor:number(10000), numConsumer:number(60)) {
     reaction(start, send_next_msg) -> outMessage, finished {=
         outMessage = true;
         ++ sent_messages;
-        if (self->sent_messages == self->totalMessages) {
+        if (sent_messages == totalMessages) {
             // reset state
             sent_messages = 0;
             finished = true;
@@ -41,26 +43,18 @@ reactor ActorCreator(totalActor:number(10000), numConsumer:number(60)) {
     =}
 }
 
-main reactor ActorCreation(numActorPerReactor:number(10000), numWorkers:number(60)) {
-    logical action end;
-    state startTime:time;
+main reactor ActorCreation(numIterations:number(12), numActorPerReactor:number(10000), numWorkers:number(60)) {
     
+    runner = new BenchmarkRunner(num_iterations=numIterations);
     creater = new ActorCreator(totalActor=numActorPerReactor, numConsumer=numWorkers);
     areactor = new[numWorkers] ActorReactor(totalActor =numActorPerReactor);
 
-    reaction (startup) -> creater.start {=
-        startTime = util.getCurrentPhysicalTime();
+    reaction (startup) {=
+        console.log("Start Actor Creation LF Benchmark!");
     =}
 
-    reaction (creater.finished) -> end {=
-        actions.end.schedule(0, null);
-    =}
-
-    reaction (end) {=
-        const elapsedTime = util.getCurrentPhysicalTime().subtract(startTime as TimeValue);
-        console.log("Elapsed time: " + elapsedTime);
-        util.requestStop();
-    =}
-
+    runner.start -> creater.start;
     (creater.outMessage)+ -> areactor.inMessage;
+    creater.finished -> runner.finish;
+
 }
