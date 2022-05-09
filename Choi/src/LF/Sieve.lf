@@ -1,15 +1,47 @@
 /*
  * Copyright (C) 2022 TU Dresden and UC Berkeley
  * 
+ * refer to https://github.com/lf-lang/reactor-ts/blob/master/src/benchmark/Sieve.ts
+ * 
  * @author Wonseo Choi
  * @author DukiChoi
  */
  
 
  target TypeScript {
+    fast: true
 };
 
+import BenchmarkRunner from "BenchmarkRunner.lf";
 
-main reactor Sieve {
+
+reactor Ramp(totalNumber:number(100000)) {
+
+    output value: number;
+
+    logical action next: number;
+
+}
+
+reactor Filter(primeStart: number(2), primeNumber: number(1000)) {
+
+    input inp: number;
+    output out: number;
+
+    state localPrimes: {=Array<number>=}({= [] =});
+    state hasChild: boolean;
+
+    
+}
+
+
+main reactor Sieve(numIterations:number(12), totalNumber:number(100000), primeStart: number(2), primeNumber: number(1000)) {
+    runner = new BenchmarkRunner(num_iterations=numIterations);
+    source = new Ramp(totalNumber=totalNumber);
+    filter = new Filter(primeStart=primeStart, primeNumber=primeNumber);
+
+    reaction (startup) {=
+        console.log("Start Sieve of Eratosthenes LF Benchmark!");
+    =}
 
 }
