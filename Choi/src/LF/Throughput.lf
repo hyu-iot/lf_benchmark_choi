@@ -8,19 +8,19 @@
     fast: true
 };
 
-// import BenchmarkRunner from "../BenchmarkRunner.lf";
+import BenchmarkRunner from "BenchmarkRunner.lf";
 
 reactor ThroughputReactor(totalMessages:number(10000)) {
     
     preamble {=
-        function performComputation(double theta) {
-            double sint = sin(theta);
-            // volatile to defeat dead code elimination
+        function performComputation(theta: number): void {
+            const sint = sin(theta);
+            
             volatile double res = sint * sint;
         }
     =}
     
-    input inMessage:bool;
+    input inMessage:boolean;
             
     reaction(inMessage) {=
         performComputation(37.2);
@@ -43,7 +43,7 @@ reactor ThroughputProducer(totalMessages:number(10000), numConsumer:number(60)) 
         ++sent_messages;
         
         if (sent_messages == totalMessages) {
-            // reset state
+
             sent_messages = 0;
             finished = true;
         }
@@ -52,25 +52,17 @@ reactor ThroughputProducer(totalMessages:number(10000), numConsumer:number(60)) 
     =}
 }
 
-main reactor (numMessagesPerReactor:number(10000), numWorkers:number(60)) {
-    logical action end;
-    state startTime:time;
+main reactor (numIterations:number(12), numMessagesPerReactor:number(100), numWorkers:number(60)) {
+
+    runner = new BenchmarkRunner(num_iterations=numIterations);
     producer = new ThroughputProducer(totalMessages=numMessagesPerReactor, numConsumer=numWorkers);
     worker = new[numWorkers] ThroughputReactor(totalMessages=numMessagesPerReactor);
 
-    reaction (startup) -> producer.start {=
-        startTime = util.getCurrentPhysicalTime();
+    reaction (startup) {=
+        console.log("Start Throughput LF Benchmark!");
     =}
 
-    reaction (producer.finished) -> end {=
-        actions.end.schedule(0, null);
-    =}
-
-    reaction (end) {=
-        const elapsedTime = util.getCurrentPhysicalTime().subtract(startTime as TimeValue);
-        console.log("Elapsed time: " + elapsedTime);
-        util.requestStop();
-    =}
-
+    runner.start -> producer.start;
     (producer.outMessage)+ -> worker.inMessage;
+    producer.finished -> runner.finish;
 }
