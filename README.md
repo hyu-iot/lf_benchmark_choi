@@ -9,17 +9,17 @@ Author : @Wonseo-C, @Dukichoi
 ---
 
 ## Benchmark with Mutation List
-1. ActorCreation
+1. ActorCreation - (implementing by Wonseo Choi ...)
 2. FacilityLocation
-3. Quicksort
+3. Quicksort - (implementing by Dukichoi ...)
 4. Sieve
 5. SuccessiveOverRelaxation
 6. UnbalancedCobwebbedTree
 
 ---
 ## Benchmark without Mutation List
-1. Philosophers
-2. Throughput
+1. Philosophers (o)
+2. Throughput (o)
 
 ---
 
