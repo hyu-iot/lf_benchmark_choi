@@ -30,11 +30,11 @@ reactor ThroughputReactor(totalMessages:number(10000)) {
 
 reactor ThroughputProducer(totalMessages:number(10000), numConsumer:number(60)) {
     
-    state sent_messages: number(0);
-    
     input start:boolean;
     output outMessage:boolean;
     output finished:boolean;
+
+    state sent_messages: number(0);
 
     logical action sendNextMessage;
     
