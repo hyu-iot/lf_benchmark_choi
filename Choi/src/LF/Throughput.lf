@@ -4,7 +4,7 @@
  * @author Wonseo Choi
  */
 
- target TypeScript {
+target TypeScript {
     fast: true
 };
 
@@ -14,9 +14,9 @@ reactor ThroughputReactor(totalMessages:number(10000)) {
     
     preamble {=
         function performComputation(theta: number): void {
-            const sint = sin(theta);
+            const sint: number = Math.sin(theta);
             
-            volatile double res = sint * sint;
+            const res: number = sint * sint;
         }
     =}
     
