@@ -16,24 +16,26 @@ import BenchmarkRunner from "BenchmarkRunner.lf";
 
 
 reactor Ramp(totalNumber:number(100000)) {
+    input start: boolean;
     output value: number;
+    output end: boolean;
 
     logical action next: number;
 
-    reaction (startup) -> next {=
+    reaction (start) -> next {=
         actions.next.schedule(0, 2);
     =}
 
-    reaction (next) -> next, value {=
+    reaction (next) -> next, value, end {=
         const n: number = next as number;
 
         if (n <= totalNumber) {
             actions.next.schedule(0, n+1);
             value = n;
         } else{
-            util.requestStop();
+            end = true;
         }
-        
+
     =}
 
 }
@@ -46,11 +48,37 @@ reactor Filter(primeStart: number(2), primeNumber: number(1000)) {
     state localPrimes: {=Array<number>=}({= [] =});
     state hasChild: boolean;
 
+    // Mutation
+    reaction (inp) {=
+        let div = false;
+        const size = localPrimes.length;
+        const p = inp as number;
+
+        for (const q of localPrimes) {
+            if (Number.isInteger(p / q)) {
+                div = true;
+                break
+            }
+        }
+
+        if (!div) {
+            if (size < primeNumber) {
+                localPrimes.push(p);
+                // Print finded prime number if want
+                console.log("New prime number : " + p);
+            }
+            //TODO : Add this part that mutation works//
+            // create another Filter
+            // if has child -> set out port
+            // if has not child -> connecting
+        }
+    =}
+
 
 }
 
 
-main reactor Sieve(numIterations:number(12), totalNumber:number(100000), primeStart: number(2), primeNumber: number(1000)) {
+main reactor Sieve(numIterations:number(4), totalNumber:number(1000), primeStart: number(2), primeNumber: number(1000)) {
     runner = new BenchmarkRunner(num_iterations=numIterations);
     source = new Ramp(totalNumber=totalNumber);
     filter = new Filter(primeStart=primeStart, primeNumber=primeNumber);
@@ -58,5 +86,9 @@ main reactor Sieve(numIterations:number(12), totalNumber:number(100000), primeSt
     reaction (startup) {=
         console.log("Start Sieve of Eratosthenes LF Benchmark!");
     =}
+
+    runner.start -> source.start;
+    source.value -> filter.inp;
+    source.end -> runner.finish;
 
 }
