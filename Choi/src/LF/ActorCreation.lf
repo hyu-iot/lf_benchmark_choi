@@ -11,14 +11,56 @@
 };
 
 reactor ActorReactor(totalActor:number(10000)) {
-
+    
+    input inMessage:boolean;
+            
+    reaction(inMessage) {=
+        performComputation(37.2);
+    =}
 }
 
-reactor ActorCreator(totalMessages:number(10000), numConsumer:number(60)) {
+reactor ActorCreator(totalActor:number(10000), numConsumer:number(60)) {
     
+    state sent_messages: number(0);
+    
+    input start:boolean;
+    output outMessage:boolean;
+    output finished:boolean;
+    
+    logical action send_next_msg;
+
+    reaction(start, send_next_msg) -> outMessage, finished {=
+        outMessage = true;
+        ++ sent_messages;
+        if (self->sent_messages == self->totalMessages) {
+            // reset state
+            sent_messages = 0;
+            finished = true;
+        }
+        actions.send_next_msg.schedule(0, null);
+    =}
 }
 
 main reactor ActorCreation(numActorPerReactor:number(10000), numWorkers:number(60)) {
-    producer = new ActorCreator(totalMessages=numActorPerReactor, numConsumer=numWorkers);
-    worker = new[numWorkers] ActorReactor(totalActor =numActorPerReactor);
+    logical action end;
+    state startTime:time;
+    
+    creater = new ActorCreator(totalActor=numActorPerReactor, numConsumer=numWorkers);
+    areactor = new[numWorkers] ActorReactor(totalActor =numActorPerReactor);
+
+    reaction (startup) -> creater.start {=
+        startTime = util.getCurrentPhysicalTime();
+    =}
+
+    reaction (creater.finished) -> end {=
+        actions.end.schedule(0, null);
+    =}
+
+    reaction (end) {=
+        const elapsedTime = util.getCurrentPhysicalTime().subtract(startTime as TimeValue);
+        console.log("Elapsed time: " + elapsedTime);
+        util.requestStop();
+    =}
+
+    (creater.outMessage)+ -> areactor.inMessage;
 }
