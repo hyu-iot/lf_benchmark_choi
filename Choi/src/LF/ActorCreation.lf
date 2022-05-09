@@ -17,7 +17,7 @@ reactor ActorReactor(totalActor:number(10000)) {
     input inMessage:boolean;
             
     reaction(inMessage) {=
-        performComputation(37.2);
+        // performComputation(37.2);
     =}
 }
 
@@ -29,17 +29,21 @@ reactor ActorCreator(totalActor:number(10000), numConsumer:number(60)) {
     output outMessage:boolean;
     output finished:boolean;
     
-    logical action send_next_msg;
+    logical action sendNextMessage;
 
-    reaction(start, send_next_msg) -> outMessage, finished {=
+    reaction (start) -> sendNextMessage {=
+        actions.sendNextMessage.schedule(0, null);
+    =}
+
+    reaction (sendNextMessage) -> outMessage, sendNextMessage, finished {=
         outMessage = true;
         ++ sent_messages;
-        if (sent_messages == totalMessages) {
-            // reset state
+        if (sent_messages < totalActor) {
+            actions.sendNextMessage.schedule(0, null);
+        } else {
             sent_messages = 0;
             finished = true;
         }
-        actions.send_next_msg.schedule(0, null);
     =}
 }
 
