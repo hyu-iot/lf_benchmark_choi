@@ -11,11 +11,15 @@ Author : @Wonseo-C, @Dukichoi
 ## Benchmark with Mutation List
 1. ActorCreation
 2. FacilityLocation
-3. Philosophers
-4. Quicksort
-5. Sieve
-6. SuccessiveOverRelaxation
-7. UnbalancedCobwebbedTree
+3. Quicksort
+4. Sieve
+5. SuccessiveOverRelaxation
+6. UnbalancedCobwebbedTree
+
+---
+## Benchmark without Mutation List
+1. Philosophers
+2. Throughput
 
 ---
 
