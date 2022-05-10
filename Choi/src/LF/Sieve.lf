@@ -49,7 +49,7 @@ reactor Filter(primeStart: number(2), primeNumber: number(1000)) {
     state hasChild: boolean;
 
     // Mutation
-    reaction (inp) {=
+    reaction (inp) -> out {=
         let div = false;
         const size = localPrimes.length;
         const p = inp as number;
@@ -66,15 +66,23 @@ reactor Filter(primeStart: number(2), primeNumber: number(1000)) {
                 localPrimes.push(p);
                 // Print finded prime number if want
                 console.log("New prime number : " + p);
-            }
+            } 
             //TODO : Add this part that mutation works//
             // create another Filter
             // if has child -> set out port
             // if has not child -> connecting
+            else {
+                if (!hasChild) {
+                    // Mutation
+                    hasChild = true;
+                } else {
+                    out = p;
+                }
+            }
+            
+
         }
     =}
-
-
 }
 
 
