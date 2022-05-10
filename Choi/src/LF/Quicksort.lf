@@ -19,7 +19,7 @@ reactor Parent(limit:number(10000)){
     state count:number(0);
     
     //delegate는 child에게 넘겨서 계산하게끔 하는 함수
-    reaction (start) -> delegate{=
+    reaction (start) -> done, delegate{=
         if(count == limit){
             done == true;
         }else{
