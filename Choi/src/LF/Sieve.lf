@@ -65,7 +65,7 @@ reactor Filter(primeStart: number(2), primeNumber: number(1000)) {
             if (size < primeNumber) {
                 localPrimes.push(p);
                 // Print finded prime number if want
-                console.log("New prime number : " + p);
+                // console.log("New prime number : " + p);
             } 
             //TODO : Add this part that mutation works//
             // create another Filter
