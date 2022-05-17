@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2022 Hanyang University
  * 
  * refer to https://github.com/lf-lang/reactor-ts/blob/master/src/benchmark/Sieve.ts

@@ -1,11 +1,11 @@
-target TypeScript;
-
-/*
+/**
  *
  * Copyright (C) 2022 Hanyang University
  *
  * @author Wonseo Choi
  */
+
+ target TypeScript;
 
 reactor BenchmarkRunner(num_iterations:number(12)) {
 
