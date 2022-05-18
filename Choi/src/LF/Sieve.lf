@@ -82,7 +82,7 @@ reactor Filter(primeStart: number(2), primeNumber: number(1000)) {
         }
     =}
 
-    mutation {=
+    mutation (inp) {=
         console.log("Mutation!")
     =}
 }
