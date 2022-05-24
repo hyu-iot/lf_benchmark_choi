@@ -48,12 +48,10 @@ reactor Filter(primeStart: number(2), primeNumber: number(1000)) {
     state localPrimes: {=Array<number>=}({= [] =});
     state hasChild: boolean;
 
-    // Mutation
-    reaction (inp) -> out {=
+    mutation (inp) -> out {=
         let div = false;
         const size = localPrimes.length;
         const p = inp as number;
-
         for (const q of localPrimes) {
             if (Number.isInteger(p / q)) {
                 div = true;
@@ -80,10 +78,6 @@ reactor Filter(primeStart: number(2), primeNumber: number(1000)) {
                 }
             }
         }
-    =}
-
-    mutation (inp) {=
-        console.log("Mutation!")
     =}
 }
 
