@@ -68,7 +68,7 @@ reactor Filter(primeStart: number(2), primeNumber: number(1000)) {
             }  else {
                 // Potential prime found.
                 if (!hasChild) {                            
-                    let n = new Filter(Filter, p, primeNumber);
+                    let n = new Filter(this.getReactor(), p, primeNumber);
                     //this.start(n)
                     // console.log("CREATING...")
                     // let x = this.create(Filter, [this.getReactor(), p])
