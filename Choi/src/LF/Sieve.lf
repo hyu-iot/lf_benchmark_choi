@@ -15,12 +15,12 @@
 import BenchmarkRunner from "BenchmarkRunner.lf";
 
 
-reactor Ramp(totalNumber:number(100000)) {
+reactor Ramp(totalNumber:number(100000), period:time(1 nsec)) {
     input start: boolean;
     output value: number;
     output end: boolean;
 
-    logical action next: number;
+    logical action next(period): number;
 
     reaction (start) -> next {=
         actions.next.schedule(0, 2);
@@ -89,9 +89,9 @@ reactor Filter(primeStart: number(2), primeNumber: number(1000)) {
 }
 
 
-main reactor Sieve(numIterations:number(12), totalNumber:number(1000), primeStart: number(2), primeNumber: number(100)) {
+main reactor Sieve(numIterations:number(12), totalNumber:number(1000), primeStart: number(2), primeNumber: number(100), period: time(1 nsec)) {
     runner = new BenchmarkRunner(num_iterations=numIterations);
-    source = new Ramp(totalNumber=totalNumber);
+    source = new Ramp(totalNumber=totalNumber, period=period);
     filter = new Filter(primeStart=primeStart, primeNumber=primeNumber);
 
     reaction (startup) {=
