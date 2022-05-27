@@ -80,6 +80,8 @@ reactor Filter(primeStart: number(2), primeNumber: number(1000)) {
                     // For a pipeline like this one, it is not necessary, but in general it is.
                     // Can we avoid redoing the entire sort?
                     hasChild = true;
+                } else {
+                    out = p;
                 }
             }
         }
