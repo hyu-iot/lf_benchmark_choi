@@ -7,8 +7,127 @@
  
 
  target TypeScript {
+    fast: true
 };
 
-main reactor FacilityLocation {
-    
+import BenchmarkRunner from "BenchmarkRunner.lf";
+
+reactor Producer(numPoints:number(10), gridSize:number(500), period:time(1 nsec)) {
+    preamble {=
+        class Msg {}
+        class NextCustomerMsg {}
+        class CustomerMsg {
+        // The producer variable is not needed since hasQuadrantProducer
+        // is used to determin whether a quadrant producer (parent) exists and
+        // toProducer is used for a port to the producer.
+        point: Point
+        constructor(point: Point) {
+                this.point = point
+            }
+        }
+        class RequestExitMsg {}
+    =}
+
+    output toConsumer: {=Msg=};
+    state itemsProduced: number(0);
+    logical action nextCustomer(period): {=NextCustomerMsg=};
+
+    reaction (startup, nextCustomer) -> nextCustomer, toConsumer {=
+        if (itemsProduced < numPoints) {
+            // Send CustomerMsg to the consumer.
+            // `this` is reaction, and parent is reactor containing this reaction.
+            toConsumer = new CustomerMsg(Point.random(gridSize));
+            // Increase itemsProduced by 1.
+            itemsProduced = itemsProduced + 1;
+            // Schedule next customer (NextCustomerMsg).
+            actions.nextCustomer.schedule(0, new NextCustomerMsg());
+        } else {
+            // TODO(hokeun): Replace this with sending RequestExitMsg.
+            toConsumer = new RequestExitMsg();
+        }
+    =}
 }
+
+reactor Quadrant {
+
+}
+
+reactor Summary {
+    preamble {=
+        class ConfirmExitMsg {
+            facilities: number
+            supportCustomers: number
+            // This 'quadrantReactors' is additional information for reactor-ts.
+            // And it is not in the Akka-version implementation.
+            quadrantReactors: number
+            constructor(facilities: number,
+                supportCustomers: number,
+                quadrantReactors: number) {
+                    this.facilities = facilities
+                    this.supportCustomers = supportCustomers
+                    this.quadrantReactors = quadrantReactors
+                }
+        }
+    =}
+
+    input fromRootQuadrant: {=ConfirmExitMsg=};
+
+    reaction (fromRootQuadrant) {=
+        const msgFromRootQuadrant = fromRootQuadrant;
+        if (msgFromRootQuadrant) {
+            console.log(`Num Facilities: ${msgFromRootQuadrant.facilities}, ` +
+                `Num customers: ${msgFromRootQuadrant.supportCustomers}, ` +
+                `Num quadrant reactors: ${msgFromRootQuadrant.quadrantReactors}`);
+        } else {
+            console.log("Summary Error: ConfirmExitMsg from root quadrant is undefined.");
+            util.requestStop();
+        }
+        util.requestStop();
+    =}
+}
+
+main reactor FacilityLocation(numIterations: number(12), 
+                              numPoints: number(10), gridSize: number(500), period: time(1 nsec)) {
+    
+    runner = new BenchmarkRunner(num_iterations=numIterations);
+    producer = new Producer(numPoints=numPoints, gridSize=gridSize, period=period);
+    // rootQuadrant = new Quadrant(hasQuadrantProducer=hasQuadrantProducer, positionRelativeToParent, boundry, threshold, depth, initLocalFacilities, initKnownFacilities, initMaxDepthOfKnownOpenFacility, initCustomers);
+    summary = new Summary();
+
+    reaction (startup) {=
+        console.log("Start FacilityLocation LF Benchmark!");
+    =}
+    
+    preamble {=
+        class Point {
+            x: number
+            y: number
+            constructor(x: number, y: number) {
+                    this.x = x
+                    this.y = y
+            }
+            public clone(): Point {
+                return new Point(this.x, this.y)
+            }
+            public static arrayClone(points: Point[]): Point[] {
+                const newPoints = new Array<Point>()
+                points.forEach(val => newPoints.push(val.clone()))
+                return newPoints
+            }
+            public toString(): string {
+                return `Point (x: ${this.x}, y: ${this.y})`
+            }
+            public getDistance(p: Point): number {
+                const xDiff = p.x - this.x;
+                const yDiff = p.y - this.y;
+                const distance = Math.sqrt((xDiff * xDiff) + (yDiff * yDiff));
+                return distance;
+            }
+            public static random(gridSize: number): Point {
+                return new Point(Math.random() * gridSize, Math.random() * gridSize)
+            }
+        }
+    =}
+
+}
+
