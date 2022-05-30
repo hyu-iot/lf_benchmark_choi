@@ -13,10 +13,19 @@ import BenchmarkRunner from "BenchmarkRunner.lf";
 
 reactor ActorReactor(totalActor:number(10000)) {
     
+    preamble {=
+        function performComputation(theta: number): void {
+            const sint: number = Math.sin(theta);
+            
+            const res: number = sint * sint;
+        }
+    =}
+    
     input inMessage:boolean;
             
-    reaction(inMessage) {=
+    mutation(inMessage) {=
         // performComputation(37.2);
+        let n = new Filter(this.getReactor(), p, primeNumber);
     =}
 }
 
