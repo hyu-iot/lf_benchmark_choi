@@ -46,6 +46,7 @@ class ActorCreator extends Reactor {
             new Triggers(this.create),
             new Args(this.createNumber),
             function(this, create, createNumber) {
+                let n = new ACReactor(this.getReactor())
                 
             }
         )
