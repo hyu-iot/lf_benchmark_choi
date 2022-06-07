@@ -1,0 +1,460 @@
+/*
+ * Copyright (C) 2022 Hanyang University
+ * 
+ * @author Byungkeun Choi
+ */
+ 
+
+
+ target TypeScript {
+    fast: true 
+};
+
+//import BenchmarkRunner from "./BenchmarkRunner.lf";
+
+// preamble {=
+//     //여기서부터 deque구조 넣어줌
+//     // Linked data structure part
+//     interface Node<T> {
+//         previous: Node<T>,
+//         value: T,
+//         next: Node<T>
+//     }
+//     // Double-ended queue structure
+//     class Deque<T> {
+//         private first: Node<T> = null;
+//         private last: Node<T> = null;
+//         private size: number = 0;
+
+//         public get length() {
+//             return this.size;
+//         }
+//         public push_back(value: T) {
+//             // Update last
+//             const last = this.last;
+//             this.last = {previous: last, value: value, next: null};
+//             if(last !== null)
+//             last.next = this.last;
+//             // Update first
+//             if(this.first === null)
+//             this.first = this.last;
+//             // Update size
+//             this.size++;
+//             // Return new size
+//             return this.size;
+//         }
+//         public push_front(value: T) {
+//             // Update first
+//             const first = this.first;
+//             this.first = {previous: null, value: value, next: first};
+//             if(first !== null)
+//             first.previous = this.first;
+//             // Update last
+//             if(this.last === null)
+//             this.last = this.first;
+//             // Update size
+//             this.size++;
+//             // Return new size
+//             return this.size;
+//         }
+
+//         public pop_back() {
+//             // Check possibility
+//             if(this.size === 0)
+//             return null;
+//             // Update last
+//             const entry = this.last;
+//             this.last = entry.previous;
+//             if(this.last !== null)
+//             this.last.next = null;
+//             // Update first
+//             if(this.first === entry)
+//             this.first = null;
+//             // Update size
+//             this.size--;
+//             // Return value of removed entry
+//             return entry.value;
+//         }
+//         public pop_front() {
+//             // Check possibility
+//             if(this.size === 0)
+//             return null;
+//             // Update first
+//             const entry = this.first;
+//             this.first = entry.next;
+//             if(this.first !== null)
+//             this.first.previous = null;
+//             // Update last
+//             if(this.last === entry)
+//             this.last = null;
+//             // Update size
+//             this.size--;
+//             // Return value of removed entry
+//             return entry.value;
+//         }
+//         public empty(){
+//             if(this.size === 0)
+//                 return true;
+//             else
+//                 return false;
+//         }
+//         public front(){
+//             if(this.size ===0)
+//                 return this.first;
+//         }
+//         public back(){
+//             if(this.size ===0)
+//                 return this.last;
+//         }
+//     }
+
+
+//     class TransposedMatrix<T> {
+//         private data : Array<number>;
+//         private size : number;
+
+//         public Constructor(size_x:number ,size_y:number ) {
+//             this.data = new Array(size_x*size_y);
+//             this.size = size_x;
+//         }
+
+//         public at(x:number, y:number):T const { return this.data[y*size+x]; }
+//         public at(x:number, y:number):T { return this.data[y*size+x]; }
+//     }
+    
+//     class Matrix<T> {
+//         private data : Array<number>;
+//         private size : number;
+
+//         public Constructor(size_x:number, size_y:number) {
+//             this.data = new Array(size_x*size_y);
+//             this.size = size_x;
+//         }
+
+//         public at(x:number, y:number):T const { return this.data[x*size+y]; }
+//         public at(x:number, y:number):T { return this.data[x*size+y]; }
+//     }
+
+//     type WorkItem = {
+//         srA : number; // srA = start row in matrix A
+//         scA : number; // scA = start column in matrix A
+//         srB : number;
+//         scB : number;
+//         srC : number;
+//         scC : number;
+//         numBlocks : number; // total number of elements per block in both dimensions
+//         dim : number; // number of elements in one dimension in one block
+//     };
+// =}
+
+reactor Manager(numWorkers: number(20), dataLength: number(1024)) {
+
+    preamble {=
+        //여기서부터 deque구조 넣어줌
+        // Linked data structure part
+        interface Node<T> {
+            previous: Node<T>,
+            value: T,
+            next: Node<T>
+        }
+        // Double-ended queue structure
+        class Deque<T> {
+            //private first: Node<T> = null;
+            //private last: Node<T> = null;
+            private size: number = 0;
+            private last: Node<T> = null as any;
+            private first: Node<T> = null as any;
+            public get length() {
+                return this.size;
+            }
+            public push_back(value: T) {
+                // Update last
+                const last = this.last;
+                this.last = {previous: last, value: value, next: null as any};
+                if(last !== null)
+                last.next = this.last;
+                // Update first
+                if(this.first === null)
+                this.first = this.last;
+                // Update size
+                this.size++;
+                // Return new size
+                return this.size;
+            }
+            public push_front(value: T) {
+                // Update first
+                const first = this.first;
+                this.first = {previous: null as any, value: value, next: first};
+                if(first !== null)
+                first.previous = this.first;
+                // Update last
+                if(this.last === null)
+                this.last = this.first;
+                // Update size
+                this.size++;
+                // Return new size
+                return this.size;
+            }
+    
+            public pop_back() {
+                // Check possibility
+                if(this.size === 0)
+                return null;
+                // Update last
+                const entry = this.last;
+                this.last = entry.previous;
+                if(this.last !== null)
+                this.last.next = null as any;
+                // Update first
+                if(this.first === entry)
+                this.first = null as any;
+                // Update size
+                this.size--;
+                // Return value of removed entry
+                return entry.value;
+            }
+            public pop_front() {
+                // Check possibility
+                if(this.size === 0)
+                return null;
+                // Update first
+                const entry = this.first;
+                this.first = entry.next;
+                if(this.first !== null)
+                this.first.previous = null as any;
+                // Update last
+                if(this.last === entry)
+                this.last = null as any;
+                // Update size
+                this.size--;
+                // Return value of removed entry
+                return entry.value;
+            }
+            public empty(){
+                if(this.size === 0)
+                    return true;
+                else
+                    return false;
+            }
+            public front(){
+                if(this.size ===0)
+                    return this.first;
+            }
+            public back(){
+                if(this.size ===0)
+                    return this.last;
+            }
+        }
+    
+    
+        class TransposedMatrix<T> {
+            private data : Array<T>;
+            private size : number;
+    
+            public constructor(size_x:number ,size_y:number ) {
+                this.data = new Array(size_x*size_y);
+                this.size = size_x;
+            }
+    
+            public at(x:number, y:number):T { return this.data[y*this.size+x]; }
+            public put(x:number, y:number, thing:T){this.data[y*this.size+x] = thing; }
+        }
+        
+        class Matrix<T> {
+            private data : Array<T>;
+            private size : number;
+    
+            public constructor(size_x:number, size_y:number) {
+                this.data = new Array(size_x*size_y);
+                this.size = size_x;
+            }
+    
+            public at(x:number, y:number):T { return this.data[x*this.size+y]; }
+            public put(x:number, y:number, thing:T){this.data[x*this.size+y] = thing; }
+        }
+    
+        type WorkItem = {
+            srA : number; // srA = start row in matrix A
+            scA : number; // scA = start column in matrix A
+            srB : number;
+            scB : number;
+            srC : number;
+            scC : number;
+            numBlocks : number; // total number of elements per block in both dimensions
+            dim : number; // number of elements in one dimension in one block
+        };
+    =}
+    
+    state A: Matrix<number>(dataLength, dataLength);
+    state B: TransposedMatrix<number>(dataLength, dataLength);
+    state C: Matrix<number>(dataLength, dataLength);
+    
+    //여기서 Deque클래스를 선언해준다.
+    state workQueue: {=Deque<WorkItem>=};
+    logical action next;
+    logical action done;
+    input start: null;
+    output finished: null;
+    
+    output data: {=[Matrix<number>, TransposedMatrix<number>, Matrix<number>]=};
+    output[numWorkers] doWork: WorkItem;
+    input[numWorkers] moreWork: {=Array<WorkItem>=};
+    reaction (startup) {=
+        // Fill both input arrays with data
+        for (let i = 0; i < dataLength; ++i) {
+            for (let j = 0; j < dataLength; ++j) {
+                A.put(i, j, i);
+                B.put(i, j, j);
+            }
+        }
+    =}
+    
+    reaction (start) -> data, next {=
+        // reset the result matrix C
+        C = new Matrix<number>(dataLength, dataLength);
+        workQueue = new Deque<WorkItem>();
+        // send pointers to all 3 matrixes to the workers
+        data = [A, B, C];
+        
+        // produce the first work item, instructing the worker to multiply the complete matrix
+        const numBlocks:number = dataLength * dataLength;
+        const item:any = {srA:0, scA:0, srB:0, scB:0, srC:0, scC:0, numBlocks:numBlocks, dim:dataLength}
+        workQueue.push_back(item);
+        // and start the first iteration
+        actions.next.schedule(0, null);
+    =}
+    
+    reaction (next) -> next, done, doWork {=
+        if (workQueue.empty()) {
+            // we are done if there is no more work
+            actions.done.schedule(0, null);
+        } else {
+            // send a work item to each worker (until there is no more work)
+            for (let i:number = 0; i < numWorkers && !workQueue.empty(); i++) {
+                doWork[i].set(workQueue.front());
+                workQueue.pop_front();
+            }
+            // and schedule the next iteration
+            actions.next.schedule(0, null);
+        }
+    =}
+    
+    reaction (moreWork) {=
+        // append all work items received from the workers to the internal work queue
+        for (const port in moreWork) {
+            //여기서 is_present()를 타입스크립트로 바꿔줘야한다. 
+            if (port!==undefined) {
+                let items:any = port;
+                if (items.length != 0) {
+                    workQueue.insert(workQueue.end(), items.begin(), items.end());
+                }
+            }
+        }
+    =}
+    
+    reaction (done) -> finished {=
+        let valid:boolean = isValid();
+        //console.log
+        console.log("Result valid = " + valid);
+        finished.set();
+    =}
+    
+    const method isValid(): boolean {=
+        for (let i:number= 0; i < dataLength; i++) {
+            for (let j:number = 0; j < dataLength; j++) {
+                let actual:number = C.at(i, j);
+                let expected:number = 1.0 * dataLength * i * j;
+                if (Math.abs(actual-expected) > 0.0001) { // allow some rounding errors
+                    console.log("Validation failed for (i,j)=" + i + "," + j + " with (" + actual + "," + expected + ")");
+                    return false;    
+                }
+            }
+        }
+        return true;
+    =}
+}
+
+reactor Worker(threshold: number(16384)) {
+
+    state A: Matrix<number>;
+    state B: TransposedMatrix<number>;
+    state C: Matrix<number>;
+
+    input data: {=[Matrix<number>, TransposedMatrix<number>, Matrix<number>]=};
+    input doWork: WorkItem;    
+    output moreWork: {=Array<WorkItem>=};
+    
+    reaction (data) {=
+        A = data[0];
+        B = data[1];
+        C = data[2];
+    =}
+    
+    reaction(doWork) -> moreWork {=
+        let wi:WorkItem = doWork;
+        
+        // If the number of blocks to process is above the threshold,
+        // then we split the problem into smaller chunks and generate more work items
+        if (wi.numBlocks > threshold) {
+            let workQueue:Array<WorkItem> = new Array<WorkItem>(8);            
+            let dim:number = wi.dim / 2;
+            let numBlocks:number = wi.numBlocks / 4;
+            
+            workQueue[0] = {srA:wi.srA      , scA:wi.scA      , srB:wi.srB      , scB:wi.scB      , srC:wi.srC      , scC:wi.scC      , numBlocks:numBlocks, dim:dim};
+            workQueue[1] = {srA:wi.srA      , scA:wi.scA + dim, srB:wi.srB + dim, scB:wi.scB      , srC:wi.srC      , scC:wi.scC      , numBlocks:numBlocks, dim:dim};
+            workQueue[2] = {srA:wi.srA      , scA:wi.scA      , srB:wi.srB      , scB:wi.scB + dim, srC:wi.srC      , scC:wi.scC + dim, numBlocks:numBlocks, dim:dim};
+            workQueue[3] = {srA:wi.srA      , scA:wi.scA + dim, srB:wi.srB + dim, scB:wi.scB + dim, srC:wi.srC      , scC:wi.scC + dim, numBlocks:numBlocks, dim:dim};
+            workQueue[4] = {srA:wi.srA + dim, scA:wi.scA      , srB:wi.srB      , scB:wi.scB      , srC:wi.srC + dim, scC:wi.scC      , numBlocks:numBlocks, dim:dim};
+            workQueue[5] = {srA:wi.srA + dim, scA:wi.scA + dim, srB:wi.srB + dim, scB:wi.scB      , srC:wi.srC + dim, scC:wi.scC      , numBlocks:numBlocks, dim:dim};
+            workQueue[6] = {srA:wi.srA + dim, scA:wi.scA      , srB:wi.srB      , scB:wi.scB + dim, srC:wi.srC + dim, scC:wi.scC + dim, numBlocks:numBlocks, dim:dim};
+            workQueue[7] = {srA:wi.srA + dim, scA:wi.scA + dim, srB:wi.srB + dim, scB:wi.scB + dim, srC:wi.srC + dim, scC:wi.scC + dim, numBlocks:numBlocks, dim:dim};
+
+            moreWork=workQueue;
+        } else {
+            // otherwise we compute the result directly
+            let endR:number = wi.srC + wi.dim;
+            let endC:number = wi.scC + wi.dim;
+        
+            for(let i:number = wi.srC; i < endR; i++) {
+                for (let j:number = wi.scC; j < endC; j++) {
+                    for (let k:number = 0; k < wi.dim; k++) {
+                        C.put(i, j, C.at(i, j) + A.at(i, wi.scA + k) * B.at(wi.srB + k, j));
+                    }
+                }
+            }
+        }
+    =}
+}
+
+main reactor (numIterations: number(12), dataLength: number(1024), blockThreshold: number(16384), priorities:number(10), numWorkers: number(20)) {
+    // The priorities parameter is not used, but we keep it for compatibility with Akka
+    
+    logical action end;
+    state startTime:time;
+
+    //runner = new BenchmarkRunner(numIterations=numIterations);
+    manager = new Manager(numWorkers=numWorkers, dataLength=dataLength);
+    workers = new[numWorkers] Worker(threshold=blockThreshold) 
+    
+    reaction(startup)->manager.start {=
+        startTime = util.getCurrentPhysicalTime();   
+        console.log("MatMulBenchmark");
+        console.log("numIterations", numIterations, "dataLength", dataLength, "blockThreshold", blockThreshold, "priorities", priorities, "numWorkers", numWorkers);
+    =}
+    
+    reaction(manager.finished) -> end{=
+        actions.end.schedule(0, null)
+    =}
+
+    reaction (end) {=
+        const elapsedTime = util.getCurrentPhysicalTime().subtract(startTime as TimeValue);
+        console.log("Elapsed time: " + elapsedTime);
+        util.requestStop();
+    =}
+    //runner.start -> manager.start;
+    //manager.finished -> runner.finished;
+    
+    (manager.data)+ -> workers.data;
+    manager.doWork -> workers.doWork;
+    workers.moreWork -> manager.moreWork;
+}
