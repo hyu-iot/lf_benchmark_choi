@@ -75,6 +75,7 @@ reactor Filter(primeStart: number(2), primeNumber: number(1000)) {
                     // FIXME: weird hack. Maybe just accept writable ports as well?
                     // util.getPort(out) -> __out.getPort()
                     var port = __out.getPort()
+                    // var port = util.getPort(out)
                     util.connect(port, n.inp);
                     // FIXME: this updates the dependency graph, but it doesn't redo the topological sort
                     // For a pipeline like this one, it is not necessary, but in general it is.
