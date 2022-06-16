@@ -9,6 +9,7 @@
 
  target TypeScript {
     fast: true
+    #logging: DEBUG
 };
 
 import BenchmarkRunner from "BenchmarkRunner.lf";
@@ -72,10 +73,8 @@ reactor Filter(primeStart: number(2), primeNumber: number(1000)) {
                     // console.log("CREATING...")
                     // let x = this.create(Filter, [this.getReactor(), p])
                     // console.log("CREATED: " + x._getFullyQualifiedName())
-                    // FIXME: weird hack. Maybe just accept writable ports as well?
                     // util.getPort(out) -> __out.getPort()
-                    // var port = __out.getPort()
-                    var port = util.getPort(__out)
+                    var port = util.getPort(__out);
                     util.connect(port, n.inp);
                     // FIXME: this updates the dependency graph, but it doesn't redo the topological sort
                     // For a pipeline like this one, it is not necessary, but in general it is.
@@ -90,7 +89,7 @@ reactor Filter(primeStart: number(2), primeNumber: number(1000)) {
 }
 
 
-main reactor Sieve(numIterations:number(12), totalNumber:number(1000), primeStart: number(2), primeNumber: number(100), period: time(1 nsec)) {
+main reactor Sieve(numIterations:number(12), totalNumber:number(100000), primeStart: number(2), primeNumber: number(1000), period: time(1 nsec)) {
     runner = new BenchmarkRunner(num_iterations=numIterations);
     source = new Ramp(totalNumber=totalNumber, period=period);
     filter = new Filter(primeStart=primeStart, primeNumber=primeNumber);
