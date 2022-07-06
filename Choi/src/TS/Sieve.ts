@@ -45,6 +45,10 @@ class Filter extends Reactor {
             new Triggers(this.inp),
             new Args(this.inp, this.writable(this.out), this.startPrime, this.hasChild, this.localPrimes),
             function (this, inp, out, prime, hasChild, localPrimes) {
+                if (!inp.isPresent()) {
+                    // process.exit()
+                    console.log("DGASDG")
+                }
                 let p = inp.get()
                 if (p !== undefined) {            
                     let seen = localPrimes.get()

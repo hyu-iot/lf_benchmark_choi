@@ -12,8 +12,6 @@
     #logging: DEBUG
 };
 
-import BenchmarkRunner from "BenchmarkRunner.lf";
-
 
 reactor Ramp(totalNumber:number(100000), period:time(1 nsec)) {
     input start: boolean;
@@ -49,17 +47,19 @@ reactor Filter(primeStart: number(2), primeNumber: number(1000)) {
     state hasChild: boolean(false);
 
     mutation (inp) -> out {=
-        let div = false;
-        const size = localPrimes.length;
         const p = inp as number;
 
-        for (const q of localPrimes) {
+        if (p !== undefined) {
+            let div = false;
+            const size = localPrimes.length;
+
+            for (const q of localPrimes) {
             if (Number.isInteger(p / q)) {
                 div = true;
                 break
             }
         }
-
+        
         if (!div) {
             if (size < primeNumber) {
                 localPrimes.push(p);
@@ -85,21 +85,28 @@ reactor Filter(primeStart: number(2), primeNumber: number(1000)) {
                 }
             }
         }
+        }
     =}
 }
 
 
-main reactor Sieve(numIterations:number(12), totalNumber:number(100), primeStart: number(2), primeNumber: number(10), period: time(1 nsec)) {
-    runner = new BenchmarkRunner(num_iterations=numIterations);
+main reactor Sieve2(numIterations:number(12), totalNumber:number(100000), primeStart: number(2), primeNumber: number(1000), period: time(1 nsec)) {
+    logical action end;
+    state startTime:time;
+    
     source = new Ramp(totalNumber=totalNumber, period=period);
     filter = new Filter(primeStart=primeStart, primeNumber=primeNumber);
 
-    reaction (startup) {=
+    reaction (startup) -> source.start {=
         console.log("Start Sieve of Eratosthenes LF Benchmark!");
+        startTime = util.getCurrentPhysicalTime();
+        source.start = true;
     =}
-
-    runner.start -> source.start;
     source.value -> filter.inp;
-    source.end -> runner.finish;
+    reaction (end) {=
+        let elapsedTime = util.getCurrentPhysicalTime().subtract(startTime as TimeValue);
+        console.log("Elapsed time: " + elapsedTime);
+        util.requestStop();
+    =}
 
 }
