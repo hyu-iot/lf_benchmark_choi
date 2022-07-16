@@ -11,8 +11,8 @@
 
 import BenchmarkRunner from "BenchmarkRunner.lf";
 
-reactor ActorReactor(totalActor:number(10000)) {
-    
+reactor ReactorCreator(numReactor:number(60)) {
+
     preamble {=
         function performComputation(theta: number): void {
             const sint: number = Math.sin(theta);
@@ -20,22 +20,13 @@ reactor ActorReactor(totalActor:number(10000)) {
             const res: number = sint * sint;
         }
     =}
-    
-    input inMessage:boolean;
-            
-    mutation(inMessage) {=
-        // performComputation(37.2);
-        let n = new Filter(this.getReactor(), p, primeNumber);
-    =}
-}
 
-reactor ActorCreator(totalActor:number(10000), numConsumer:number(60)) {
-    
-    state sent_messages: number(0);
-    
-    input start:boolean;
-    output outMessage:boolean;
-    output finished:boolean;
+    input start: boolean;
+    input inMessage: boolean;
+    output outMessage: boolean;
+    output finished: boolean;
+
+    state createReactor: number(0);
     
     logical action sendNextMessage;
 
@@ -43,30 +34,34 @@ reactor ActorCreator(totalActor:number(10000), numConsumer:number(60)) {
         actions.sendNextMessage.schedule(0, null);
     =}
 
-    reaction (sendNextMessage) -> outMessage, sendNextMessage, finished {=
-        outMessage = true;
-        ++ sent_messages;
-        if (sent_messages < totalActor) {
-            actions.sendNextMessage.schedule(0, null);
+    reaction(inMessage) {=
+        
+        performComputation(37.2);
+    =}
+
+    mutation (sendNextMessage) -> inMessage, outMessage, finished {=
+        ++ createReactor;
+        inMessage = true;
+        if (createReactor == numReactor) {
+            finished = true;  
         } else {
-            sent_messages = 0;
-            finished = true;
-        }
+            let newReactor = new ReactorCreator(this.getReactor(), sendNextMessage, numReactor);
+            var outPort = __outMessage.getPort();
+            this.connect(outPort, n.sendNextMessage);
+        }        
     =}
 }
 
-main reactor ActorCreation(numIterations:number(12), numActorPerReactor:number(10000), numWorkers:number(60)) {
+main reactor ActorCreation(numIterations:number(12), numReactor:number(60)) {
     
     runner = new BenchmarkRunner(num_iterations=numIterations);
-    creater = new ActorCreator(totalActor=numActorPerReactor, numConsumer=numWorkers);
-    areactor = new[numWorkers] ActorReactor(totalActor =numActorPerReactor);
+    creater = new ReactorCreator(numReactor=numReactor);
 
     reaction (startup) {=
         console.log("Start Actor Creation LF Benchmark!");
     =}
 
     runner.start -> creater.start;
-    (creater.outMessage)+ -> areactor.inMessage;
     creater.finished -> runner.finish;
 
 }
