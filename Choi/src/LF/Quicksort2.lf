@@ -1,0 +1,68 @@
+/**
+ * Copyright (C) 2022 Hanyang University
+ * 
+ * @author Wonseo Choi
+ * @author DukiChoi
+ */
+
+target TypeScript {
+    fast: true
+};
+
+reactor Ramp(RelativeToParent:number(0)) {
+    input start: boolean;
+    output done : boolean;
+
+    input inp: number;
+    output out: number;
+
+    state localPrimes: {=Array<number>=}({= [] =});
+
+    mutation (inp) -> out {=
+        const p = inp as number;
+
+        left = new Ramp(this.getReactor(), p, Position.LEFT)
+        var port = __out.getPort();
+        this.connect(port, left.inp);
+
+        right = new Ramp(this.getReactor(), p, Position.RIGHT)
+        var port = __out.getPort();
+        this.connect(port, right.inp);
+    =}
+}
+
+reactor SortMessage {
+    
+}
+
+
+
+main reactor Quicksort2 {
+    preamble {=
+        enum Position {
+            RIGHT = 0,
+            LEFT = 0,
+            INITIAL = 0,
+        }
+    =}
+
+    state startTime:time;
+    
+    root = new Ramp(RelativeToParent={=Position.INITIAL=});
+
+    // Start quicksort benchmark
+    reaction (startup) -> root.start {=
+        root.start = true;
+        startTime = util.getCurrentPhysicalTime();
+    =}
+
+    // Done quicksort benchmark
+    reaction (root.done) {=
+        const elapsedTime = util.getCurrentPhysicalTime().subtract(startTime as TimeValue);
+        console.log("Elapsed time: " + elapsedTime);
+        util.requestStop();
+    =}
+
+
+
+}

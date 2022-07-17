@@ -14,8 +14,9 @@ reactor ReactorCreator(numReactor:number(60), createNumber:number(0)) {
     preamble {=
         function performComputation(theta: number): void {
             const sint: number = Math.sin(theta);
-            
             const res: number = sint * sint;
+
+            console.log("Perform Computation.");
         }
     =}
 
