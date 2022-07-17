@@ -9,9 +9,7 @@
      fast: true
 };
 
-import BenchmarkRunner from "BenchmarkRunner.lf";
-
-reactor ReactorCreator(numReactor:number(60)) {
+reactor ReactorCreator(numReactor:number(60), createNumber:number(0)) {
 
     preamble {=
         function performComputation(theta: number): void {
@@ -21,47 +19,41 @@ reactor ReactorCreator(numReactor:number(60)) {
         }
     =}
 
-    input start: boolean;
-    input inMessage: boolean;
+    input inp: boolean;
     output outMessage: boolean;
     output finished: boolean;
 
-    state createReactor: number(0);
-    
-    logical action sendNextMessage;
-
-    reaction (start) -> sendNextMessage {=
-        actions.sendNextMessage.schedule(0, null);
-    =}
-
-    reaction(inMessage) {=
-        
+    mutation (inp) -> outMessage, finished {=
+        ++ createNumber;
         performComputation(37.2);
-    =}
-
-    mutation (sendNextMessage) -> inMessage, outMessage, finished {=
-        ++ createReactor;
-        inMessage = true;
-        if (createReactor == numReactor) {
-            finished = true;  
+        console.log("Create " + createNumber + " reactor.");
+        if (createNumber == numReactor) {
+            console.log("End Benchmark.");
+            finished = true;   
         } else {
-            let newReactor = new ReactorCreator(this.getReactor(), sendNextMessage, numReactor);
+            outMessage = true;
+            let newReactor = new ReactorCreator(this.getReactor(), numReactor, createNumber);
             var outPort = __outMessage.getPort();
-            this.connect(outPort, n.sendNextMessage);
+            this.connect(outPort, newReactor.inp);
         }        
     =}
 }
 
 main reactor ActorCreation(numIterations:number(12), numReactor:number(60)) {
-    
-    runner = new BenchmarkRunner(num_iterations=numIterations);
-    creater = new ReactorCreator(numReactor=numReactor);
+    state startTime: time;
 
-    reaction (startup) {=
+    creater = new ReactorCreator(numReactor=numReactor, createNumber=0);
+
+    // Start
+    reaction (startup) -> creater.inp {=
+        creater.inp = true;
         console.log("Start Actor Creation LF Benchmark!");
     =}
 
-    runner.start -> creater.start;
-    creater.finished -> runner.finish;
-
+    // End
+    reaction (creater.finished) {=
+        const elapsedTime = util.getCurrentPhysicalTime().subtract(startTime as TimeValue);
+        console.log("Elapsed time: " + elapsedTime);
+        util.requestStop();
+    =}
 }
