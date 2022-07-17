@@ -40,13 +40,14 @@ reactor ReactorCreator(numReactor:number(60), createNumber:number(0)) {
     =}
 }
 
-main reactor ActorCreation(numIterations:number(12), numReactor:number(60)) {
+main reactor ActorCreation(numIterations:number(12), numReactor:number(500)) {
     state startTime: time;
 
     creater = new ReactorCreator(numReactor=numReactor, createNumber=0);
 
     // Start
     reaction (startup) -> creater.inp {=
+        startTime = util.getCurrentPhysicalTime();
         creater.inp = true;
         console.log("Start Actor Creation LF Benchmark!");
     =}
