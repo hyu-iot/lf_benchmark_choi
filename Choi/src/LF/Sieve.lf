@@ -12,7 +12,7 @@
     #logging: DEBUG
 };
 
-import BenchmarkRunner from "BenchmarkRunner.lf";
+// import BenchmarkRunner from "BenchmarkRunner.lf";
 
 
 reactor Ramp(totalNumber:number(100000), period:time(1 nsec)) {
@@ -89,17 +89,27 @@ reactor Filter(primeStart: number(2), primeNumber: number(1000)) {
 }
 
 
-main reactor Sieve(numIterations:number(12), totalNumber:number(100), primeStart: number(2), primeNumber: number(10), period: time(1 nsec)) {
-    runner = new BenchmarkRunner(num_iterations=numIterations);
+main reactor Sieve(numIterations:number(12), totalNumber:number(1000), primeStart: number(2), primeNumber: number(50), period: time(1 nsec)) {
+    state startTime: time;
+    // runner = new BenchmarkRunner(num_iterations=numIterations);
     source = new Ramp(totalNumber=totalNumber, period=period);
     filter = new Filter(primeStart=primeStart, primeNumber=primeNumber);
 
-    reaction (startup) {=
+    reaction (startup) -> source.start {=
+        startTime = util.getCurrentPhysicalTime();
+        source.start = true;
         console.log("Start Sieve of Eratosthenes LF Benchmark!");
     =}
 
-    runner.start -> source.start;
+    // runner.start -> source.start;
+    
+    reaction (source.end) {=
+        const elapsedTime = util.getCurrentPhysicalTime().subtract(startTime as TimeValue);
+        console.log("Elapsed time: " + elapsedTime);
+        util.requestStop();
+    =}
+
     source.value -> filter.inp;
-    source.end -> runner.finish;
+    // source.end -> runner.finish;
 
 }
