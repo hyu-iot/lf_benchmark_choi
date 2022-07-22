@@ -1,0 +1,142 @@
+/**
+ * Copyright (C) 2022 Hanyang University
+ * 
+ * @author Wonseo Choi
+ */
+
+target TypeScript {
+    fast: true
+};
+
+import BenchmarkRunner from "../BenchmarkRunner.lf";
+
+preamble {=
+    enum CreditMessage {
+        recipient,
+        amount
+    }
+    const MessageQueue = new Array<CreditMessage>;
+    
+=}
+
+reactor Teller(numAccounts:number(1000), numBankings:number(50000)) {
+    state randomGen: PseudoRandom;
+    state messageQueues: {=Array<typeof MessageQueue>(numAccounts)=};
+
+    input start:boolean;
+    output finished:boolean;
+
+    output[numAccounts] resetState: boolean;
+    output[numAccounts] credit: CreditMessage;
+
+    logical action next;
+
+    method generateWork() {=
+        for (let i = 0; i < numBankings; i++) {
+            let srcAccount = randomGen.nextInt((numAccounts / 10) * 8);
+            let loopId = randomGen.nextInt(numAccounts - srcAccount);
+            if(loopId == 0) {
+                loopId += 1;
+            }
+            let destAccount = srcAccount + loopId;
+            
+            let amount = randomGen.nextDouble() * 1000;
+            
+            console.log("Send " + amount + " from" + srcAccount + " to" + destAccount);
+            messageQueues[srcAccount].push(CreditMessage{destAccount, amount});
+        }
+    =}
+
+    reaction(start) -> resetState, next {=
+        console.log("Teller: Start a new iteration")
+        
+        // reset local state
+        randomGen = PseudoRandom(123456);
+
+        // reset all accounts
+        // TODO: Change auto&
+        for (auto& r : resetState) {
+            r = true;
+        }
+
+        generateWork();
+
+        // start execution
+        actions.next.schedule(0, null);
+    =}
+
+    reaction(next) -> next, credit, finished {=
+        console.log("Teller: Sending a new round of credit messages");
+        let workFound{false};
+        for (let i = 0; i < numAccounts; i++) {
+            // TODO: Change auto&
+            auto& queue = messageQueues[i];
+            if (!queue.empty()) {
+                workFound = true;
+                // TODO: Change auto&
+                let auto& message = queue.front();  
+                credit[message.recipient] = message;
+                queue.pop();
+            }
+        }
+        
+        if (workFound) {
+            actions.next.schedule(0, null);
+        } else {
+            console.log("Teller: Finished iteration");
+            finished = true;
+        }
+    =}
+}
+
+reactor Account(bankIndex:number(0), numAccounts:number(1000), initialBalance:number(0.0)) {
+    state balance: number{0.0};
+    
+    input resetState: boolean; 
+    input inCredit: CreditMessage;
+   
+    input[numAccounts] inDebit: double; 
+    output[numAccounts] outDebit: double;
+       
+    reaction (resetState) {=
+        balance = initialBalance;
+    =}
+    
+    reaction (inCredit) -> outDebit {=
+        auto message = inCredit.get();
+        // reduce the balance
+        balance -= message->amount;
+        // and sent the recipient a debit message
+        outDebit[message->recipient].set(message->amount);
+        console.log("Account " + bankIndex + " credits " + message->amount + " to " + message->recipient);
+    =}
+    
+    reaction (inDebit) {=
+        // TODO: Change auto&
+        for (auto& port : inDebit) {
+            if (port !== undefined) {
+                let amount = *port.get();
+                // increase the balance
+                balance += amount;
+                console.log("Account " + bankIndex + " received " + amount);
+            }
+        }
+    =}
+}
+
+main reactor Banking (numIterations:number(12), numTransactions:number(50000), numAccounts:number(20)) {
+    teller = new Teller(numAccounts=numAccounts, numBankings=numTransactions);
+    accounts = new[numAccounts] Account(numAccounts=numAccounts, numTransactions=numTransactions);
+    runner = new BenchmarkRunner(numIterations=numIterations);
+
+    reaction(startup) {=
+        console.log("Start Banking LF Benchmark!");
+    =}
+
+    runner.start -> teller.start;
+    teller.finished -> runner.finish;
+
+    teller.credit -> accounts.inCredit;
+    teller.resetState -> accounts.resetState;
+    accounts.outDebit -> interleaved(accounts.inDebit);
+}
